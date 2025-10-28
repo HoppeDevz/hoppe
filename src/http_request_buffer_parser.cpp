@@ -6,8 +6,8 @@ void HttpRequestParser::calculate_components_range(
     char* buffer, 
     int size,
 
-    HttpComponentRange* start_line_range,  
-    HttpComponentRange* request_headers_range, 
+    HttpComponentRange* start_line_range,
+    HttpComponentRange* request_headers_range,
     HttpComponentRange* body_range
 
 ) {
@@ -116,6 +116,43 @@ void HttpRequestParser::parse_request_startline(char* startline_buff, int size, 
 
 void HttpRequestParser::parse_request_headers(char* request_headers_buff, int size, RequestHeaders* headers) {
 
-    
+    int cursor = 0;
+    int reading_type = 0;
+
+    std::string current_key;
+
+    for (int i = 0; i < size; i++) {
+
+        if (request_headers_buff[i] == 0x3A && reading_type == 0) {
+
+            int key_size = i - cursor;
+            char* key_buff = new char[key_size  + 1];
+            memcpy(key_buff, &request_headers_buff[cursor], key_size);
+            key_buff[key_size] = '\0';
+
+            current_key = std::string(key_buff, key_size + 1);
+            cursor = i + 2;
+            reading_type = 1;
+
+            free(key_buff);
+
+        }
+
+        if (request_headers_buff[i] == 0x0D && reading_type == 1) {
+
+            int value_size = i - cursor;
+            char* value_buff = new char[value_size  + 1];
+            memcpy(value_buff, &request_headers_buff[cursor], value_size);
+            value_buff[value_size] = '\0';
+
+            reading_type = 0;
+            cursor = i + 2;
+
+            headers->emplace(current_key, std::string(value_buff, value_size + 1));
+            free(value_buff);
+
+        }
+
+    }
 
 }

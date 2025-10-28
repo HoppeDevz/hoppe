@@ -18,14 +18,9 @@ void handler(int client_fd) {
     HttpRequest req{};
     HttpRequestParser::parse_http_request_buffer(buffer, 4096, &req);
 
-    // HttpComponentRange start_line_range{};
-    // HttpComponentRange request_headers_range{};
-    // HttpComponentRange body_range{};
-    // HttpHeaderParser::calculate_components_range(buffer, 4096, &start_line_range, &request_headers_range, &body_range);
-
-    // std::cout << "startline range: " << start_line_range.start_at << " , " << start_line_range.finish_at << std::endl;
-    // std::cout << "req headers range: " << request_headers_range.start_at << " , " << request_headers_range.finish_at << std::endl;
-    // std::cout << "req body range: " << body_range.start_at << " , " << body_range.finish_at << std::endl;
+    std::cout << "Method: " << req.details.method << std::endl;
+    std::cout << "Route: " << req.details.route << std::endl;
+    std::cout << "HTTP Version: " << req.details.http_version << std::endl;
 
 }
 
