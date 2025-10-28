@@ -8,6 +8,11 @@
 
 typedef std::map<std::string, std::string> RequestHeaders;
 
+struct RequestBody {
+    int content_length;
+    char* data;
+};
+
 struct RequestDetails {
     std::string method;
     std::string route;
@@ -15,8 +20,9 @@ struct RequestDetails {
 };
 
 struct HttpRequest {
-    RequestDetails details;
-    RequestHeaders headers;
+    RequestDetails  details;
+    RequestHeaders  headers;
+    RequestBody     body;
 };
 
 struct HttpComponentRange {
@@ -33,6 +39,7 @@ class HttpRequestParser {
         static void parse_http_request_buffer(char* buffer, int size, HttpRequest* request);
         static void parse_request_startline(char* startline_buff, int size, RequestDetails* details);
         static void parse_request_headers(char* request_headers_buff, int size, RequestHeaders* headers);
+        static void parse_request_body(char* request_body_buff, int size, RequestHeaders* headers, RequestBody* body);
 
 };
 

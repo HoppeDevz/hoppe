@@ -22,6 +22,9 @@ void handler(int client_fd) {
     std::cout << "Route: " << req.details.route << std::endl;
     std::cout << "HTTP Version: " << req.details.http_version << std::endl;
 
+    std::cout << "Body length: " << req.body.content_length << std::endl; 
+    std::cout << req.body.data << std::endl;
+
 }
 
 int main() {

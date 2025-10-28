@@ -39,7 +39,7 @@ void HttpRequestParser::calculate_components_range(
         ) {
 
             if (request_headers_range != nullptr) {
-                request_headers_range->finish_at = i - 1;
+                request_headers_range->finish_at = i + 2;
             }
 
             if (body_range != nullptr) {
@@ -75,8 +75,12 @@ void HttpRequestParser::parse_http_request_buffer(char* buffer, int size, HttpRe
     RequestHeaders headers{};
     HttpRequestParser::parse_request_headers(request_headers_buff, request_headers_buff_size, &headers);
 
+    RequestBody body{};
+    HttpRequestParser::parse_request_body(request_body_buff, request_body_buff_size, &headers, &body);
+
     request->details = details;
     request->headers = headers;
+    request->body = body;
 
 }
 
@@ -121,16 +125,15 @@ void HttpRequestParser::parse_request_headers(char* request_headers_buff, int si
 
     std::string current_key;
 
-    for (int i = 0; i < size; i++) {
+    for (int i = 0; i <= size; i++) {
 
         if (request_headers_buff[i] == 0x3A && reading_type == 0) {
 
             int key_size = i - cursor;
-            char* key_buff = new char[key_size  + 1];
+            char* key_buff = new char[key_size];
             memcpy(key_buff, &request_headers_buff[cursor], key_size);
-            key_buff[key_size] = '\0';
 
-            current_key = std::string(key_buff, key_size + 1);
+            current_key = std::string(key_buff, key_size);
             cursor = i + 2;
             reading_type = 1;
 
@@ -141,18 +144,35 @@ void HttpRequestParser::parse_request_headers(char* request_headers_buff, int si
         if (request_headers_buff[i] == 0x0D && reading_type == 1) {
 
             int value_size = i - cursor;
-            char* value_buff = new char[value_size  + 1];
+            char* value_buff = new char[value_size];
             memcpy(value_buff, &request_headers_buff[cursor], value_size);
-            value_buff[value_size] = '\0';
 
             reading_type = 0;
             cursor = i + 2;
 
-            headers->emplace(current_key, std::string(value_buff, value_size + 1));
+            headers->emplace(current_key, std::string(value_buff, value_size));
             free(value_buff);
 
         }
 
     }
 
+}
+
+void HttpRequestParser::parse_request_body(char* request_body_buff, int size, RequestHeaders* request_headers, RequestBody* body) {
+
+
+    RequestHeaders::iterator it = request_headers->find("Content-Length");
+
+    if (it == request_headers->end())
+        return;
+
+    int content_length = std::stoi(it->second);
+    std::string body_data = std::string(request_body_buff, content_length);
+
+    body->content_length = content_length;
+    body->data = (char*)malloc(content_length);
+
+    memcpy(body->data, request_body_buff, content_length);
+    
 }
